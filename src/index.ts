@@ -12,6 +12,7 @@ import { authMiddleware } from "./middlewares/auth.middleware";
 
 // Routes
 import { authRouter } from "./routers/auth.router";
+import { estatesRouter } from "./routers/estates.router";
 
 const app = express();
 app.use(
@@ -27,6 +28,7 @@ app.use(authMiddleware);
 // Routes
 
 app.use("/api", authRouter);
+app.use("/api", estatesRouter);
 
 // Middlewares
 app.use(notFoundMiddleware);

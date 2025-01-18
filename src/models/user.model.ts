@@ -1,8 +1,8 @@
 ﻿import mongoose, { Document } from "mongoose";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
 import { generateToken } from "../lib/jwt";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { Role } from "../lib/enums";
 
 export interface IUserDocument extends Document {
   firstName: string;
@@ -63,6 +63,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: "user",
+      enum: Object.values(Role),
     },
     password: {
       type: String,

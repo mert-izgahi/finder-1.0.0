@@ -1,5 +1,9 @@
 ﻿import express from "express";
 import { AnyZodObject } from "zod";
+import { tryCatch } from "../middlewares/try-catch.middleware";
+import { validate } from "../middlewares/validate.middleware";
+import { signInSchema, signUpSchema } from "../lib/zod";
+import { withAuth } from "../middlewares/auth.middleware";
 import {
   signIn,
   signUp,
@@ -11,11 +15,6 @@ import {
   deleteSession,
   deleteAllSessions,
 } from "../controllers/auth.controller";
-import { tryCatch } from "../middlewares/try-catch.middleware";
-import { validate } from "../middlewares/validate.middleware";
-import { signInSchema, signUpSchema } from "../lib/zod";
-import { withAuth } from "../middlewares/auth.middleware";
-
 const router = express.Router();
 
 router.post(

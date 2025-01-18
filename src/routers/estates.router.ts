@@ -1,0 +1,34 @@
+﻿import express from "express";
+import { AnyZodObject } from "zod";
+import { tryCatch } from "../middlewares/try-catch.middleware";
+import { validate } from "../middlewares/validate.middleware";
+import { estateSchema } from "../lib/zod";
+import { withAuth } from "../middlewares/auth.middleware";
+
+import {
+  createEstate,
+  deleteEstate,
+  getEstate,
+  getEstates,
+  updateEstate,
+} from "../controllers/estate.controller";
+
+const router = express.Router();
+
+router.get("/estates", tryCatch(getEstates));
+router.get("/estates/:id", tryCatch(getEstate));
+router.post(
+  "/estates",
+  withAuth,
+  validate(estateSchema as any as AnyZodObject),
+  tryCatch(createEstate)
+);
+router.put(
+  "/estates/:id",
+  withAuth,
+  validate(estateSchema as any as AnyZodObject),
+  tryCatch(updateEstate)
+);
+router.delete("/estates/:id", withAuth, tryCatch(deleteEstate));
+
+export { router as estatesRouter };
