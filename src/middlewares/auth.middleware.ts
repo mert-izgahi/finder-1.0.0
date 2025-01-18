@@ -34,6 +34,7 @@ export const authMiddleware = (
 
 export const withAuth = (req: Request, res: Response, next: NextFunction) => {
   const { currentUserId } = res.locals;
+
   if (!currentUserId) {
     return next(ApiError.invalidCredentials());
   }
