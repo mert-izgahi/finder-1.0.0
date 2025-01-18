@@ -29,7 +29,7 @@ class MailSender {
       from: configs.mailFrom,
       to: email,
       subject: "Verify Email",
-      text: `Click this link to verify your email: ${configs.FRONTEND_URL}/auth/verify-account/${token}`,
+      text: `Click this link to verify your email: ${configs.clientUrl}/auth/verify-account/${token}`,
     };
     await this.transporter.sendMail(mailOptions);
   }
@@ -39,7 +39,7 @@ class MailSender {
       from: configs.mailFrom,
       to: email,
       subject: "Reset Password",
-      text: `Click this link to reset your password: ${configs.FRONTEND_URL}/auth/reset-password/${token}`,
+      text: `Click this link to reset your password: ${configs.clientUrl}/auth/reset-password/${token}`,
     };
     await this.transporter.sendMail(mailOptions);
   }
