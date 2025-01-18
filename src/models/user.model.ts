@@ -39,6 +39,7 @@ export interface IUserModel extends mongoose.Model<IUserDocument> {
     email: string,
     password: string
   ): Promise<IUserDocument | null>;
+  findByIdAndSoftDelete(id: string): Promise<IUserDocument | null>;
   findByVerificationToken(token: string): Promise<IUserDocument | null>;
   findByPasswordResetToken(token: string): Promise<IUserDocument | null>;
 }
@@ -170,7 +171,7 @@ userSchema.statics.findByCredentials = async function (
   email: string,
   password: string
 ) {
-  const user = await this.findOne({ email });
+  const user = await this.findOne({ email, isDeleted: false });
   if (!user) return null;
 
   const isPasswordValid = await user.comparePassword(password);
@@ -189,6 +190,16 @@ userSchema.statics.findByVerificationToken = async function (token: string) {
 userSchema.statics.findByPasswordResetToken = async function (token: string) {
   const user = await this.findOne({ passwordResetToken: token });
   if (!user) return null;
+
+  return user;
+};
+
+userSchema.statics.findByIdAndSoftDelete = async function (id: string) {
+  const user = await this.findById(id);
+  if (!user) return null;
+
+  user.isDeleted = true;
+  await user.save();
 
   return user;
 };

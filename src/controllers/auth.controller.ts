@@ -4,7 +4,7 @@ import UserModel from "../models/user.model";
 import SessionModel from "../models/session.model";
 
 export const signUp = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email } = req.body;
   const existingUser = await UserModel.findByEmail(email);
   if (existingUser) return res.status(409).json(ApiError.duplicatedEmail());
 
@@ -55,6 +55,42 @@ export const getMe = async (req: Request, res: Response) => {
   const { currentUserId } = res.locals;
   const user = await UserModel.findById(currentUserId);
   if (!user) return res.status(404).json(ApiError.notFound());
-
   return res.status(200).json(user);
+};
+
+export const updateMe = async (req: Request, res: Response) => {
+  const { currentUserId } = res.locals;
+  const user = await UserModel.findByIdAndUpdate(currentUserId, req.body, {
+    new: true,
+  });
+  if (!user) return res.status(404).json(ApiError.notFound());
+  return res.status(200).json(user);
+};
+
+export const deleteMe = async (req: Request, res: Response) => {
+  const { currentUserId } = res.locals;
+  await UserModel.findByIdAndSoftDelete(currentUserId);
+  await SessionModel.deleteMany({ user: currentUserId });
+  return res.status(200).json({ message: "User deleted successfully" });
+};
+
+export const getActiveSessions = async (req: Request, res: Response) => {
+  const { currentUserId } = res.locals;
+  const sessions = await SessionModel.find({
+    user: currentUserId,
+    valid: true,
+  });
+  return res.status(200).json(sessions);
+};
+
+export const deleteSession = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  await SessionModel.updateOne({ _id: id }, { valid: false });
+  return res.status(200).json({ message: "Session deleted successfully" });
+};
+
+export const deleteAllSessions = async (req: Request, res: Response) => {
+  const { currentUserId } = res.locals;
+  await SessionModel.deleteMany({ user: currentUserId });
+  return res.status(200).json({ message: "All sessions deleted successfully" });
 };
