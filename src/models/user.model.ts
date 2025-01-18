@@ -8,6 +8,7 @@ export interface IUserDocument extends Document {
   firstName: string;
   lastName: string;
   email: string;
+  role: string;
   password?: string;
   phoneNumber?: string;
   imageUrl?: string;
@@ -56,6 +57,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+    },
+    role: {
+      type: String,
+      required: true,
+      default: "user",
     },
     password: {
       type: String,
