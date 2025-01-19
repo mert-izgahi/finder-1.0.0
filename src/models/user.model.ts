@@ -21,8 +21,7 @@ export interface IUserDocument extends Document {
   passwordResetToken?: string;
   passwordResetTokenExpiresAt?: Date;
   birthday?: Date;
-  rating?: number;
-  reviewsCount?: number;
+  
 
   createdAt: Date;
   updatedAt: Date;
@@ -103,14 +102,6 @@ const userSchema = new mongoose.Schema(
     },
     birthday: {
       type: Date,
-    },
-    rating: {
-      type: Number,
-      default: 0,
-    },
-    reviewsCount: {
-      type: Number,
-      default: 0,
     },
   },
   {

@@ -62,6 +62,18 @@ export const estateSchema = z.object({
   }),
 });
 
+export const reviewSchema = z.object({
+  rating: z
+    .number()
+    .min(1, "Rating must be at least 1")
+    .max(5, "Rating must be at most 5"),
+  comment: z
+    .string()
+    .min(2, "Comment must be at least 2 characters")
+    .max(1000, "Comment must be at most 1000 characters"),
+});
+
 export type SignUpSchema = TypeOf<typeof signUpSchema>;
 export type SignInSchema = TypeOf<typeof signInSchema>;
 export type EstateSchema = TypeOf<typeof estateSchema>;
+export type ReviewSchema = TypeOf<typeof reviewSchema>;

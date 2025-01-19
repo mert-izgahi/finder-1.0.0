@@ -13,6 +13,7 @@ import { authMiddleware } from "./middlewares/auth.middleware";
 // Routes
 import { authRouter } from "./routers/auth.router";
 import { estatesRouter } from "./routers/estates.router";
+import { reviewsRouter } from "./routers/reviews.router";
 import { seedRouter } from "./routers/seed.router";
 // Security
 import rateLimiter from "express-rate-limit";
@@ -46,6 +47,7 @@ app.use(mongoSanitizer());
 // Routes
 app.use("/api", authRouter);
 app.use("/api", estatesRouter);
+app.use("/api", reviewsRouter);
 app.use("/api", seedRouter);
 
 // Middlewares

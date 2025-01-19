@@ -7,6 +7,7 @@ import {
   EstateAmenity,
   EstateRentPeriod,
 } from "../lib/enums";
+import ReviewModel from "./review.model";
 
 export interface IEstateDocument extends Document {
   user: mongoose.Schema.Types.ObjectId;
@@ -41,11 +42,18 @@ export interface IEstateDocument extends Document {
     postalCode: string;
     formattedAddress: string;
   };
+  // REVIEWS
+  averageRating?: number;
+  reviewsCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const estateSchema = new mongoose.Schema(
+export interface IEstateModel extends mongoose.Model<IEstateDocument> {
+  findByIdAndUpdateRatingStats(id: string): Promise<IEstateDocument>;
+}
+
+const estateSchema = new mongoose.Schema<IEstateDocument, IEstateModel>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -154,13 +162,45 @@ const estateSchema = new mongoose.Schema(
         required: true,
       },
     },
+    // REVIEWS
+    averageRating: {
+      type: Number,
+      default: 3,
+    },
+    reviewsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 estateSchema.index({ location: "2dsphere" });
 
-export const EstateModel = mongoose.model<IEstateDocument>(
+estateSchema.virtual("reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "estate",
+});
+
+estateSchema.statics.findByIdAndUpdateRatingStats = async function (
+  id: string
+) {
+  const estate = await this.findById(id);
+  if (!estate) {
+    throw new Error("Estate not found");
+  }
+  const reviews = await ReviewModel.find({ estate: id });
+  const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+  await this.updateOne(
+    { _id: id },
+    { averageRating, reviewsCount: reviews.length }
+  );
+  return this.findById(id);
+};
+
+export const EstateModel = mongoose.model<IEstateDocument, IEstateModel>(
   "Estate",
   estateSchema
 );
