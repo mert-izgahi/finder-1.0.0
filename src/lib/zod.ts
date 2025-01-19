@@ -41,7 +41,6 @@ export const estateSchema = z.object({
   amenities: z.array(z.nativeEnum(EstateAmenity)),
   rentPeriod: z.nativeEnum(EstateRentPeriod),
   price: z.number().min(0, "Price must be at least 0"),
-  location: z.string().min(2, "Location must be at least 2 characters"),
   images: z.array(z.string()).min(1, "At least one image is required"),
   videoUrl: z.string().optional(),
   floorPlanUrl: z.string().optional(),
@@ -53,6 +52,14 @@ export const estateSchema = z.object({
   yearBuilt: z.number().min(0, "Year built must be at least 0"),
   priceNegotiable: z.boolean(),
   openToVisitors: z.boolean(),
+  location: z.object({
+    coordinates: z.array(z.number()),
+    city: z.string({ message: "City is required" }),
+    state: z.string({ message: "State is required" }),
+    country: z.string({ message: "Country is required" }),
+    postalCode: z.string({ message: "Postal code is required" }),
+    formattedAddress: z.string({ message: "Formatted address is required" }),
+  }),
 });
 
 export type SignUpSchema = TypeOf<typeof signUpSchema>;

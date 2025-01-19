@@ -3,70 +3,117 @@ import EstateModel from "../models/estate.model";
 import { IResponse } from "../lib/types";
 import { ApiError } from "../lib/api-error";
 
-const createQueryObject = (req: Request) => {
-  const queryObject = {} as Record<string, any>;
+const createQueryObject = (
+  req: Request
+): {
+  queryObject: Record<string, any>;
+  page: number;
+  limit: number;
+  skip: number;
+  sortBy: string;
+  sortOrder: number;
+} => {
+  const queryObject: Record<string, any> = {};
+  const page = req.query.page ? Math.max(Number(req.query.page), 1) : 1;
+  const limit = req.query.limit ? Math.max(Number(req.query.limit), 1) : 10;
+  const skip = (page - 1) * limit;
+  const sortBy = req.query.sortBy ? String(req.query.sortBy) : "-createdAt";
+  const sortOrder = sortBy.startsWith("-") ? -1 : 1;
 
   if (req.query.search) {
     queryObject.title = { $regex: req.query.search, $options: "i" };
   }
 
-  if (req.query.minPrice) {
-    queryObject.price = { $gte: Number(req.query.minPrice) };
-  }
-
-  if (req.query.maxPrice) {
-    queryObject.price = {
-      ...queryObject.price,
-      $lte: Number(req.query.maxPrice),
-    };
+  if (req.query.minPrice || req.query.maxPrice) {
+    queryObject.price = {};
+    if (req.query.minPrice) {
+      queryObject.price.$gte = Number(req.query.minPrice);
+    }
+    if (req.query.maxPrice) {
+      queryObject.price.$lte = Number(req.query.maxPrice);
+    }
   }
 
   if (req.query.category) {
-    queryObject.category = req.query.category;
+    queryObject.category = String(req.query.category);
   }
 
   if (req.query.type) {
-    queryObject.type = req.query.type;
+    queryObject.type = String(req.query.type);
   }
 
   if (req.query.condition) {
-    queryObject.condition = req.query.condition;
+    queryObject.condition = String(req.query.condition);
   }
 
   if (req.query.status) {
-    queryObject.status = req.query.status;
+    queryObject.status = String(req.query.status);
   }
 
   if (req.query.rentPeriod) {
-    queryObject.rentPeriod = req.query.rentPeriod;
+    queryObject.rentPeriod = String(req.query.rentPeriod);
   }
 
   if (req.query.amenities) {
     queryObject.amenities = {
-      $in: (req.query.amenities as string).split("-"),
+      $in: String(req.query.amenities).split("-"),
     };
   }
 
-  if (req.query.openToVisitors) {
+  if (req.query.openToVisitors === "true") {
     queryObject.openToVisitors = true;
   }
 
-  if (req.query.page) {
-    const page = Number(req.query.page);
-    const limit = Number(req.query.limit);
-    const skip = (page - 1) * limit;
-    queryObject.skip = skip;
-    queryObject.limit = limit;
-  }
+  return {
+    queryObject,
+    page,
+    limit,
+    skip,
+    sortBy: sortBy.startsWith("-") ? sortBy.slice(1) : sortBy,
+    sortOrder,
+  };
+};
 
-  if (req.query.sortBy && req.query.sortBy !== "createdAt") {
-    const sortByValue = req.query.sortBy as string;
-    const sortOrder = sortByValue.startsWith("-") ? -1 : 1;
-    const sortBy = sortByValue.replace("-", "");
-    queryObject.sort = { [sortBy]: sortOrder };
-  }
+export const getEstates = async (req: Request, res: Response) => {
+  // Create Query Object
+  const { queryObject, skip, page, limit, sortBy, sortOrder } =
+    createQueryObject(req);
 
-  return queryObject;
+  console.log("Query Object:", queryObject);
+
+  // Find Estates
+  const estates = await EstateModel.find(queryObject)
+    .populate({
+      path: "user",
+      select: "firstName lastName email rating reviewsCount imageUrl",
+    })
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sortOrder === 1 ? 1 : -1 });
+
+  // Pagination
+  const totalResultCount = await EstateModel.countDocuments(queryObject);
+  const totalPages = Math.ceil(totalResultCount / limit);
+  const hasNextPage = page < totalPages;
+  const hasPreviousPage = page > 1;
+
+  const pagination = {
+    page,
+    limit,
+    hasNextPage,
+    hasPreviousPage,
+    totalPages,
+  };
+
+  const response: IResponse = {
+    status: 200,
+    message: "Estates fetched successfully",
+    data: {
+      estates,
+      pagination,
+    },
+  };
+  return res.status(200).json(response);
 };
 
 export const createEstate = async (req: Request, res: Response) => {
@@ -81,41 +128,6 @@ export const createEstate = async (req: Request, res: Response) => {
     data: estate,
   };
   return res.status(201).json(response);
-};
-
-export const getEstates = async (req: Request, res: Response) => {
-  // Create Query Object
-  const queryObject = createQueryObject(req);
-
-  // Find Estates
-  const estates = await EstateModel.find(queryObject)
-    .populate("user")
-    .sort(queryObject.sort)
-    .skip(queryObject.skip)
-    .limit(queryObject.limit);
-
-  // Pagination
-  const totalEstates = await EstateModel.countDocuments(queryObject);
-  const totatPages = Math.ceil(totalEstates / queryObject.limit);
-  const hasNextPage = queryObject.page < totatPages;
-  const hasPreviousPage = queryObject.page > 1;
-  const pagination = {
-    page: queryObject.page,
-    limit: queryObject.limit,
-    hasNextPage,
-    hasPreviousPage,
-    totatPages,
-  };
-
-  const response: IResponse = {
-    status: 200,
-    message: "Estates fetched successfully",
-    data: {
-      estates,
-      pagination,
-    },
-  };
-  return res.status(200).json(response);
 };
 
 export const getEstate = async (req: Request, res: Response) => {

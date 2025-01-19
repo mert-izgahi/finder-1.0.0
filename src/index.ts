@@ -13,6 +13,7 @@ import { authMiddleware } from "./middlewares/auth.middleware";
 // Routes
 import { authRouter } from "./routers/auth.router";
 import { estatesRouter } from "./routers/estates.router";
+import { seedRouter } from "./routers/seed.router";
 
 const app = express();
 app.use(
@@ -29,6 +30,7 @@ app.use(authMiddleware);
 
 app.use("/api", authRouter);
 app.use("/api", estatesRouter);
+app.use("/api", seedRouter);
 
 // Middlewares
 app.use(notFoundMiddleware);

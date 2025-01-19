@@ -15,20 +15,20 @@ import {
 
 const router = express.Router();
 
-router.get("/estates", tryCatch(getEstates));
-router.get("/estates/:id", tryCatch(getEstate));
+router.get("/get-estates", tryCatch(getEstates));
+router.get("/get-estate/:id", tryCatch(getEstate));
 router.post(
-  "/estates",
+  "/create-estate",
   withAuth,
   validate(estateSchema as any as AnyZodObject),
   tryCatch(createEstate)
 );
 router.put(
-  "/estates/:id",
+  "/update-estate/:id",
   withAuth,
   validate(estateSchema as any as AnyZodObject),
   tryCatch(updateEstate)
 );
-router.delete("/estates/:id", withAuth, tryCatch(deleteEstate));
+router.delete("/delete-estate/:id", withAuth, tryCatch(deleteEstate));
 
 export { router as estatesRouter };

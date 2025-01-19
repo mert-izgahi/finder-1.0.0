@@ -17,7 +17,6 @@ export interface IEstateDocument extends Document {
   title: string;
   description: string;
   price: number;
-  location: mongoose.Schema.Types.ObjectId;
   images: string[];
   videoUrl?: string;
   floorPlanUrl?: string;
@@ -32,6 +31,16 @@ export interface IEstateDocument extends Document {
   amenities: EstateAmenity[];
   views?: number;
   openToVisitors?: boolean;
+  // LOCATION
+  location: {
+    type: string;
+    coordinates: [number, number];
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
+    formattedAddress: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,11 +82,6 @@ const estateSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true,
-    },
-    location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Location",
       required: true,
     },
     images: {
@@ -129,9 +133,32 @@ const estateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // LOCATION
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: [Number],
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+estateSchema.index({ location: "2dsphere" });
 
 export const EstateModel = mongoose.model<IEstateDocument>(
   "Estate",
