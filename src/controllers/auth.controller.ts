@@ -25,7 +25,12 @@ export const signUp = async (req: Request, res: Response) => {
   };
   return res
     .status(201)
-    .cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" })
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    })
     .json(response);
 };
 
@@ -48,7 +53,12 @@ export const signIn = async (req: Request, res: Response) => {
   };
   return res
     .status(200)
-    .cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" })
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    })
     .json(response);
 };
 
