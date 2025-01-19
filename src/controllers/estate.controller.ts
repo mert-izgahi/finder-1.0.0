@@ -167,3 +167,74 @@ export const deleteEstate = async (req: Request, res: Response) => {
   };
   return res.status(200).json(response);
 };
+
+export const getMyEstates = async (req: Request, res: Response) => {
+  const { currentUserId } = res.locals;
+  const { page, limit, skip, sortBy, sortOrder, queryObject } =
+    createQueryObject(req);
+  const estates = await EstateModel.find({
+    user: currentUserId,
+    ...queryObject,
+  })
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sortOrder === 1 ? 1 : -1 });
+
+  const totalResultCount = await EstateModel.countDocuments({
+    user: currentUserId,
+    ...queryObject,
+  });
+  const totalPages = Math.ceil(totalResultCount / limit);
+  const hasNextPage = page < totalPages;
+  const hasPreviousPage = page > 1;
+
+  const pagination = {
+    page,
+    limit,
+    hasNextPage,
+    hasPreviousPage,
+    totalPages,
+  };
+
+  const response: IResponse = {
+    status: 200,
+    message: "My estates fetched successfully",
+    data: {
+      estates,
+      pagination,
+    },
+  };
+  return res.status(200).json(response);
+};
+
+export const getTopViewedEstatesBy = async (req: Request, res: Response) => {
+  const { by } = req.params;
+  const stats = await EstateModel.aggregate([
+    {
+      $sort: { views: -1 },
+    },
+    {
+      $group: {
+        _id: `$${by}`,
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $limit: 3,
+    },
+    {
+      $project: {
+        _id: 0,
+        [by]: "$_id",
+        count: 1,
+      },
+    },
+  ]);
+
+  const response: IResponse = {
+    status: 200,
+    message: "Top estates fetched successfully",
+    data: stats,
+  };
+  return res.status(200).json(response);
+};
