@@ -16,19 +16,19 @@ import {
 const router = express.Router();
 
 router.post(
-  "/create",
+  "/create-review",
   validate(reviewSchema as any as AnyZodObject),
   withAuth,
   tryCatch(createReview)
 );
-router.delete("/delete/:id", withAuth, tryCatch(deleteReview));
+router.delete("/delete-review/:id", withAuth, tryCatch(deleteReview));
 router.put(
-  "/update/:id",
+  "/update-review/:id",
   validate(reviewSchema as any as AnyZodObject),
   withAuth,
   tryCatch(updateReview)
 );
-router.get("/created", withAuth, tryCatch(getCreatedReviews));
-router.get("/received", withAuth, tryCatch(getRecievedReviews));
+router.get("/get-created-reviews", withAuth, tryCatch(getCreatedReviews));
+router.get("/get-received-reviews", withAuth, tryCatch(getRecievedReviews));
 
 export { router as reviewsRouter };

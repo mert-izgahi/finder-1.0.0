@@ -132,7 +132,7 @@ export const createEstate = async (req: Request, res: Response) => {
 
 export const getEstate = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const estate = await EstateModel.findById(id).populate("user");
+  const estate = await EstateModel.findById(id).populate("user reviews");
   if (!estate) return res.status(404).json(ApiError.notFound());
   const response: IResponse = {
     status: 200,

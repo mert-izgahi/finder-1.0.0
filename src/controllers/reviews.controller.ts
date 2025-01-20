@@ -5,18 +5,17 @@ import EstateModel from "../models/estate.model";
 
 export const createReview = async (req: Request, res: Response) => {
   const { currentUserId } = res.locals;
-  const { estateId } = req.params;
-  const { rating, comment } = req.body;
+  const { rating, comment, estate } = req.body;
 
   const review = await ReviewModel.create({
     user: currentUserId,
-    estate: estateId,
+    estate,
     rating,
     comment,
   });
 
   // Update average rating and reviews count
-  await EstateModel.findByIdAndUpdateRatingStats(estateId);
+  await EstateModel.findByIdAndUpdateRatingStats(estate);
 
   const response: IResponse = {
     status: 200,
@@ -28,6 +27,7 @@ export const createReview = async (req: Request, res: Response) => {
 
 export const deleteReview = async (req: Request, res: Response) => {
   const { id } = req.params;
+
   const review = await ReviewModel.findOne({ _id: id });
   if (!review) {
     return res
@@ -35,9 +35,8 @@ export const deleteReview = async (req: Request, res: Response) => {
       .json({ message: "Review not found", title: "NotFound" });
   }
 
-  await ReviewModel.deleteOne({ _id: id });
   await EstateModel.findByIdAndUpdateRatingStats(review.estate);
-
+  await ReviewModel.deleteOne({ _id: id });
   const response: IResponse = {
     status: 200,
     message: "Review deleted successfully",
@@ -86,7 +85,7 @@ export const getRecievedReviews = async (req: Request, res: Response) => {
   const estates = await EstateModel.find({ user: currentUserId });
   const reviews = await ReviewModel.find({
     estate: { $in: estates.map((estate) => estate._id) },
-  });
+  }).populate({ path: "user", select: "firstName lastName email imageUrl" });
   const response: IResponse = {
     status: 200,
     message: "My reviews fetched successfully",
